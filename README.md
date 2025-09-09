@@ -1,4 +1,4 @@
-# Whisper Model Benchmark
+# Whisper Bench
 
 This project benchmarks and compares the performance of four popular Whisper implementations:
 
@@ -38,12 +38,13 @@ pip install mlx-whisper lightning-whisper-mlx openai-whisper faster-whisper libr
 Run the benchmark on available audio files:
 
 ```bash
+cd whisper-bench
 python main.py
 ```
 
 This will:
 - Process all `.wav` files in `../audio-files-wav/`
-- Test with the "base" model size for all three implementations
+- Test with the "base" model size for all four implementations
 - Save results to `benchmark_results/`
 
 ### Output Structure
@@ -72,7 +73,7 @@ benchmark_results/
 The app now uses a clean modular architecture:
 
 ```
-mlx-whisper-test/
+whisper-bench/
 ├── main.py                    # Main entry point
 ├── config.py                  # Global configuration for fair comparisons  
 ├── benchmarks/               # Individual benchmark implementations

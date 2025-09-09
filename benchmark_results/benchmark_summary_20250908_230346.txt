@@ -1,0 +1,42 @@
+Whisper Models Benchmark Summary
+==================================================
+
+📈 Overall Performance:
+   Successful tests: 4/4
+   Fastest model: mlx-whisper-base (avg: 20.0s)
+
+🤖 whisper-base
+------------------------------
+   ✅ Successful: 1
+   ⏱️  Average time: 137.4s
+   📊 Processing rate: 2.4 MB/s
+   🚀 Realtime factor: 79.1x
+      3-micklespickles.wav: 137.4s
+
+🤖 faster-whisper-base
+------------------------------
+   ✅ Successful: 1
+   ⏱️  Average time: 288.0s
+   📊 Processing rate: 1.2 MB/s
+   🚀 Realtime factor: 37.7x
+      3-micklespickles.wav: 288.0s
+
+🤖 mlx-whisper-base
+------------------------------
+   ✅ Successful: 1
+   ⏱️  Average time: 20.0s
+   📊 Processing rate: 16.6 MB/s
+   🚀 Realtime factor: 543.9x
+      3-micklespickles.wav: 20.0s
+
+🤖 lightning-whisper-mlx-base
+------------------------------
+   ✅ Successful: 1
+   ⏱️  Average time: 54.6s
+   📊 Processing rate: 6.1 MB/s
+   🚀 Realtime factor: 199.2x
+      3-micklespickles.wav: 54.6s
+
+🔍 Quality Comparison:
+   Check the transcripts/ directory to manually compare
+   transcription quality between models.
