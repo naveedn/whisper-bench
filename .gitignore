@@ -1,1 +1,33 @@
+# macOS
 .DS_Store
+
+# Benchmark results (temporary data - regenerated on each run)
+benchmark_results/
+
+# Downloaded MLX models (temporary - downloaded as needed)
+mlx_models/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+.DS_Store?
+ehthumbs.db
+Icon?
