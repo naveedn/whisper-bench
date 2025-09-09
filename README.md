@@ -38,7 +38,7 @@ pip install mlx-whisper lightning-whisper-mlx openai-whisper faster-whisper libr
 Run the benchmark on available audio files:
 
 ```bash
-python whisper_benchmark.py
+python main.py
 ```
 
 This will:
@@ -67,9 +67,27 @@ benchmark_results/
         └── audio2_base.txt
 ```
 
+## Architecture
+
+The app now uses a clean modular architecture:
+
+```
+mlx-whisper-test/
+├── main.py                    # Main entry point
+├── config.py                  # Global configuration for fair comparisons  
+├── benchmarks/               # Individual benchmark implementations
+│   ├── __init__.py
+│   ├── base.py              # Abstract base class
+│   ├── openai_whisper.py    # OpenAI Whisper implementation
+│   ├── faster_whisper.py    # faster-whisper implementation
+│   ├── mlx_whisper.py       # mlx-whisper implementation
+│   └── lightning_whisper_mlx.py  # lightning-whisper-mlx implementation
+└── benchmark_results/        # Output directory
+```
+
 ### Customization
 
-Edit the `main()` function in `whisper_benchmark.py` to customize:
+Edit the `main()` function in `main.py` to customize:
 
 ```python
 # Change audio directory
@@ -84,22 +102,35 @@ audio_files = [f for f in audio_files if f.stat().st_size < 100 * 1024 * 1024]  
 
 ### Advanced Usage
 
-You can also use the benchmark class programmatically:
+### Configuration
+
+The app uses a global configuration system to ensure fair comparisons. Edit `config.py` to adjust:
 
 ```python
-from whisper_benchmark import WhisperBenchmark
+from config import update_config
 
-benchmark = WhisperBenchmark(output_dir="my_results")
-
-# Test specific audio file with specific model
-result = benchmark.benchmark_mlx_whisper("audio.wav", "base")
-print(f"Processing took: {result.total_time:.2f}s")
-
-# Run full benchmark
-results = benchmark.run_benchmark(
-    audio_files=["file1.wav", "file2.wav"],
-    model_sizes=["base", "small"]
+# Update global settings  
+update_config(
+    temperature=0.0,        # Deterministic output
+    beam_size=5,           # Beam search width
+    language=None,         # Auto-detect language
+    word_timestamps=True   # Include word-level timing
 )
+```
+
+You can also use individual benchmark classes programmatically:
+
+```python
+from config import get_config
+from benchmarks import OpenAIWhisperBenchmark
+from pathlib import Path
+
+config = get_config()
+benchmark = OpenAIWhisperBenchmark(config, Path("results"))
+
+# Test specific audio file
+result = benchmark.benchmark("audio.wav")
+print(f"Processing took: {result.total_time:.2f}s")
 ```
 
 ## Performance Metrics
@@ -156,10 +187,24 @@ The benchmark tracks several key metrics:
 📝 Transcripts saved to: benchmark_results/transcripts
 ```
 
+## Global Configuration Features
+
+The new configuration system ensures apples-to-apples comparisons by:
+
+- **Consistent parameters**: All models use the same beam_size, temperature, etc. where supported
+- **Model-specific kwargs**: Each implementation gets appropriate parameters via `get_*_kwargs()` methods
+- **Fair comparisons**: Settings like device selection and compute precision are standardized
+- **Reproducible results**: Deterministic settings by default (temperature=0.0)
+
 ## Contributing
 
 To add support for additional Whisper implementations:
 
-1. Add a new `benchmark_<model_name>` method to the `WhisperBenchmark` class
-2. Follow the existing pattern for error handling and result structure
-3. Add the new model to the `models` list in `run_benchmark()`
+1. Create a new file in `benchmarks/` (e.g., `benchmarks/new_model.py`)
+2. Inherit from `BaseBenchmark` and implement required methods:
+   - `get_model_name()`: Display name
+   - `get_directory_name()`: Output directory name  
+   - `_load_model()`: Model loading logic
+   - `_transcribe()`: Transcription logic
+3. Add kwargs support to `config.py` via `get_new_model_kwargs()`
+4. Register in `benchmarks/__init__.py` and `main.py`
