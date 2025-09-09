@@ -196,7 +196,9 @@ class WhisperBenchmark:
 
             # MLX Whisper doesn't have separate load/transcribe phases in the API
             start_total = time.time()
-            result = mlx_whisper.transcribe(audio_path, path_or_hf_repo=model_size)
+            # Use openai/whisper-base format to avoid HF auth issues
+            model_name = f"openai/whisper-{model_size}" if model_size != "base" else "openai/whisper-base"
+            result = mlx_whisper.transcribe(audio_path, path_or_hf_repo=model_name)
             total_time = time.time() - start_total
 
             transcript = result["text"].strip()
@@ -249,6 +251,10 @@ class WhisperBenchmark:
             ("faster-whisper", self.benchmark_faster_whisper),
             ("mlx-whisper", self.benchmark_mlx_whisper)
         ]
+
+        # Option to skip problematic models
+        skip_models = []  # Add model names here to skip, e.g., ["mlx-whisper"]
+        models = [(name, func) for name, func in models if name not in skip_models]
 
         total_tests = len(audio_files) * len(models) * len(model_sizes)
         current_test = 0
