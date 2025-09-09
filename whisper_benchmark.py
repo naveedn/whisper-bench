@@ -196,9 +196,8 @@ class WhisperBenchmark:
 
             # MLX Whisper doesn't have separate load/transcribe phases in the API
             start_total = time.time()
-            # Use openai/whisper-base format to avoid HF auth issues
-            model_name = f"openai/whisper-{model_size}" if model_size != "base" else "openai/whisper-base"
-            result = mlx_whisper.transcribe(audio_path, path_or_hf_repo=model_name)
+            # Use MLX Whisper's native model format for true MLX performance comparison
+            result = mlx_whisper.transcribe(audio_path, path_or_hf_repo=model_size)
             total_time = time.time() - start_total
 
             transcript = result["text"].strip()
