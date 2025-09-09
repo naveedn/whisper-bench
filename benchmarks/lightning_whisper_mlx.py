@@ -16,29 +16,35 @@ class LightningWhisperMLXBenchmark(BaseBenchmark):
         return "lightning_whisper_mlx"
 
     def _load_model(self) -> tuple[object, float]:
-        """Load lightning-whisper-mlx model."""
+        """Load lightning-whisper-mlx model.
+
+        Matches provided config exactly:
+        LightningWhisperMLX(model="distil-large-v3", batch_size=8, quant="8bit")
+        """
         import lightning_whisper_mlx
 
         start_time = time.time()
 
-        # Lightning Whisper MLX initialization
-        transcriber = lightning_whisper_mlx.LightningWhisperMLX(
-            model=self.config.model_size
-        )
+        # Use EXACT initialization settings from provided example
+        init_kwargs = self.config.get_lightning_whisper_mlx_init_kwargs()
+        transcriber = lightning_whisper_mlx.LightningWhisperMLX(**init_kwargs)
 
         load_time = time.time() - start_time
 
         return transcriber, load_time
 
     def _transcribe(self, model: object, audio_path: str) -> tuple[str, float]:
-        """Transcribe audio using lightning-whisper-mlx."""
+        """Transcribe audio using lightning-whisper-mlx.
+
+        Matches provided config exactly:
+        beam_size=5, temperature=0, word_timestamps=True, condition_on_previous_text=False
+        """
         start_time = time.time()
 
-        # Use consistent config settings for fair comparison
+        # Use EXACT config settings from provided example for fair comparison
         kwargs = self.config.get_lightning_whisper_mlx_kwargs()
 
         # Lightning Whisper MLX transcription
-        # Note: API may vary - adjust based on actual implementation
         result = model.transcribe(audio_path, **kwargs)
 
         transcribe_time = time.time() - start_time
