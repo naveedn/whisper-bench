@@ -1,0 +1,36 @@
+Whisper Models Benchmark Summary
+==================================================
+
+📈 Overall Performance:
+   Successful tests: 2/3
+   Fastest model: whisper-base (avg: 128.3s)
+
+🤖 whisper-base
+------------------------------
+   ✅ Successful: 1
+   ⏱️  Average time: 128.3s
+   📊 Processing rate: 2.6 MB/s
+   🚀 Realtime factor: 84.7x
+      3-micklespickles.wav: 128.3s
+
+🤖 faster-whisper-base
+------------------------------
+   ✅ Successful: 1
+   ⏱️  Average time: 255.3s
+   📊 Processing rate: 1.3 MB/s
+   🚀 Realtime factor: 42.6x
+      3-micklespickles.wav: 255.3s
+
+🤖 mlx-whisper-base
+------------------------------
+   ❌ Failed: 1
+      3-micklespickles.wav: 401 Client Error. (Request ID: Root=1-68bf7eb4-384465d22c9e0e540578edd1;c49fc127-7763-4d36-b1f4-8c97f49afbba)
+
+Repository Not Found for url: https://huggingface.co/api/models/base/revision/main.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+
+🔍 Quality Comparison:
+   Check the transcripts/ directory to manually compare
+   transcription quality between models.

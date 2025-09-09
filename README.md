@@ -1,10 +1,11 @@
 # Whisper Model Benchmark
 
-This project benchmarks and compares the performance of three popular Whisper implementations:
+This project benchmarks and compares the performance of four popular Whisper implementations:
 
 - **OpenAI Whisper** - The original implementation
 - **faster-whisper** - Optimized implementation using CTranslate2
 - **mlx-whisper** - Apple Silicon optimized implementation using MLX
+- **lightning-whisper-mlx** - Another Apple Silicon optimized implementation
 
 ## Features
 
@@ -20,14 +21,14 @@ This project benchmarks and compares the performance of three popular Whisper im
 uv sync
 ```
 
-2. Install mlx-whisper separately (due to low-level dependency issues):
+2. Install MLX-based models separately (due to low-level dependency issues):
 ```bash
-uv pip install mlx-whisper
+uv pip install mlx-whisper lightning-whisper-mlx
 ```
 
 3. Or install everything manually:
 ```bash
-pip install mlx-whisper openai-whisper faster-whisper librosa numpy
+pip install mlx-whisper lightning-whisper-mlx openai-whisper faster-whisper librosa numpy
 ```
 
 ## Usage
@@ -58,7 +59,10 @@ benchmark_results/
     ├── faster_whisper/
     │   ├── audio1_base.txt
     │   └── audio2_base.txt
-    └── mlx_whisper/
+    ├── mlx_whisper/
+    │   ├── audio1_base.txt
+    │   └── audio2_base.txt
+    └── lightning_whisper_mlx/
         ├── audio1_base.txt
         └── audio2_base.txt
 ```
@@ -142,9 +146,10 @@ The benchmark tracks several key metrics:
 ```
 🎵 Processing: 2-zaboombafool.wav
   📏 Model size: base
-    🔄 [1/3] whisper... ✅ 12.3s (2.1x realtime)
-    🔄 [2/3] faster-whisper... ✅ 8.7s (2.9x realtime)  
-    🔄 [3/3] mlx-whisper... ✅ 5.2s (4.9x realtime)
+    🔄 [1/4] whisper... ✅ 12.3s (2.1x realtime)
+    🔄 [2/4] faster-whisper... ✅ 8.7s (2.9x realtime)  
+    🔄 [3/4] mlx-whisper... ✅ 5.2s (4.9x realtime)
+    🔄 [4/4] lightning-whisper-mlx... ✅ 4.1s (6.2x realtime)
 
 📊 Results saved to: benchmark_results/benchmark_results_20240908_203045.json
 📋 Summary saved to: benchmark_results/benchmark_summary_20240908_203045.txt

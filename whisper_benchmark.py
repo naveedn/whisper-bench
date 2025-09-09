@@ -47,7 +47,7 @@ class WhisperBenchmark:
         self.transcripts_dir = self.output_dir / "transcripts"
         self.transcripts_dir.mkdir(exist_ok=True)
 
-        for model in ["whisper", "faster_whisper", "mlx_whisper"]:
+        for model in ["whisper", "faster_whisper", "mlx_whisper", "lightning_whisper_mlx"]:
             (self.transcripts_dir / model).mkdir(exist_ok=True)
 
     def get_audio_duration(self, audio_path: str) -> Optional[float]:
@@ -197,7 +197,7 @@ class WhisperBenchmark:
             # MLX Whisper doesn't have separate load/transcribe phases in the API
             start_total = time.time()
             # Use MLX Whisper's native model format for true MLX performance comparison
-            result = mlx_whisper.transcribe(audio_path, path_or_hf_repo=model_size)
+            result = mlx_whisper.transcribe(audio_path)
             total_time = time.time() - start_total
 
             transcript = result["text"].strip()
@@ -241,6 +241,69 @@ class WhisperBenchmark:
                 processing_rate_realtime=None
             )
 
+    def benchmark_lightning_whisper_mlx(self, audio_path: str, model_size: str = "base") -> BenchmarkResult:
+        """Benchmark lightning-whisper-mlx."""
+        audio_file = Path(audio_path)
+        file_size_mb = audio_file.stat().st_size / (1024 * 1024)
+        duration = self.get_audio_duration(audio_path)
+
+        try:
+            import lightning_whisper_mlx
+
+            # Lightning Whisper MLX has a different API
+            start_total = time.time()
+            # Use the model size directly - lightning-whisper-mlx handles model loading internally
+            transcriber = lightning_whisper_mlx.LightningWhisperMLX(model=model_size)
+            result = transcriber.transcribe(audio_path)
+            total_time = time.time() - start_total
+
+            # Extract text from result (format may vary)
+            if isinstance(result, dict) and "text" in result:
+                transcript = result["text"].strip()
+            elif isinstance(result, str):
+                transcript = result.strip()
+            else:
+                transcript = str(result).strip()
+
+            # Save transcript
+            output_file = self.transcripts_dir / "lightning_whisper_mlx" / f"{audio_file.stem}_{model_size}.txt"
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(transcript)
+
+            processing_rate_mb = file_size_mb / total_time if total_time > 0 else 0
+            processing_rate_rt = duration / total_time if duration and total_time > 0 else None
+
+            return BenchmarkResult(
+                model_name=f"lightning-whisper-mlx-{model_size}",
+                audio_file=audio_file.name,
+                file_size_mb=file_size_mb,
+                duration_seconds=duration,
+                load_time=0,  # Not separately measurable
+                transcribe_time=total_time,
+                total_time=total_time,
+                success=True,
+                error=None,
+                transcript=transcript,
+                processing_rate_mb_per_sec=processing_rate_mb,
+                processing_rate_realtime=processing_rate_rt
+            )
+
+        except Exception as e:
+            return BenchmarkResult(
+                model_name=f"lightning-whisper-mlx-{model_size}",
+                audio_file=audio_file.name,
+                file_size_mb=file_size_mb,
+                duration_seconds=duration,
+                load_time=0,
+                transcribe_time=0,
+                total_time=0,
+                success=False,
+                error=str(e),
+                transcript="",
+                processing_rate_mb_per_sec=0,
+                processing_rate_realtime=None
+            )
+
     def run_benchmark(self, audio_files: list, model_sizes: list = ["base"]) -> Dict[str, Any]:
         """Run complete benchmark across all models and files."""
         results = []
@@ -248,7 +311,8 @@ class WhisperBenchmark:
         models = [
             ("whisper", self.benchmark_openai_whisper),
             ("faster-whisper", self.benchmark_faster_whisper),
-            ("mlx-whisper", self.benchmark_mlx_whisper)
+            ("mlx-whisper", self.benchmark_mlx_whisper),
+            ("lightning-whisper-mlx", self.benchmark_lightning_whisper_mlx)
         ]
 
         # Option to skip problematic models

@@ -8,6 +8,7 @@ dependencies = [
     "mlx-whisper",
     "openai-whisper",
     "faster-whisper",
+    "lightning-whisper-mlx",
     "librosa",
     "numpy",
 ]
