@@ -1,0 +1,13 @@
+[project]
+name = "mlx-whisper-test"
+version = "0.1.0"
+description = "Whisper model benchmarking and comparison tool"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "mlx-whisper",
+    "openai-whisper",
+    "faster-whisper",
+    "librosa",
+    "numpy",
+]
