@@ -151,9 +151,9 @@ class PerformanceConfigOverlay:
         # CORRECTED: Speed-optimized model mappings that actually improve performance
         speed_mapping = {
             "tiny": "tiny",                    # Already fastest, no override needed
-            "base": "tiny",                    # Use tiny for maximum speed when base requested
-            "small": "base",                   # Use base (74M) instead of small (244M)
-            "medium": "small",                 # Use small (244M) instead of medium (769M)
+            "base": "base",
+            "small": "small",
+            "medium": "medium",
             "large": "large-v3-turbo",         # Use turbo (809M, 8x faster) instead of large (1.55B)
             "large-v3": "large-v3-turbo",      # Use turbo for best speed/accuracy trade-off
             "turbo": "large-v3-turbo"          # Direct turbo request
