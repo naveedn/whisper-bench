@@ -1446,6 +1446,7 @@ dependencies = [
     { name = "mlx-whisper" },
     { name = "numpy" },
     { name = "openai-whisper" },
+    { name = "soundfile" },
 ]
 
 [package.metadata]
@@ -1456,4 +1457,5 @@ requires-dist = [
     { name = "mlx-whisper" },
     { name = "numpy" },
     { name = "openai-whisper" },
+    { name = "soundfile", specifier = ">=0.13.1" },
 ]

@@ -1,18 +1,22 @@
-# macOS
-.DS_Store
-
-# Benchmark results (temporary data - regenerated on each run)
+# Generated benchmark results (recreated on each run)
 benchmark_results/
+!benchmark_results/.gitkeep
 
-# Downloaded MLX models (temporary - downloaded as needed)
+# Downloaded model files (downloaded automatically when needed)
 mlx_models/
+!mlx_models/.gitkeep
 
-# Python cache
+inputs/
+!inputs/README.md
+
+# Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
+*.py[cod]
+*$py.class
 
 # Virtual environments
 .venv/
@@ -20,14 +24,39 @@ venv/
 ENV/
 env/
 
-# IDE files
+# Temporary and experimental files
+*_old.*
+*_test.*
+*_tmp.*
+temp_*
+test_*
+
+# Audio files (users add their own to inputs/)
+*.wav
+*.mp3
+*.flac
+*.m4a
+
+# macOS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
+.ropeproject/
+
+# Logs
+*.log
+logs/
 
 # OS generated files
-Thumbs.db
-.DS_Store?
-ehthumbs.db
 Icon?

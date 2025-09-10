@@ -4,11 +4,11 @@ Global configuration for Whisper benchmark to ensure apples-to-apples comparison
 This module defines consistent settings across all Whisper implementations
 to ensure fair performance and quality comparisons.
 
-Settings based on optimal configuration for each implementation:
-- OpenAI Whisper: beam_size=5, temperature=0, word_timestamps=True, condition_on_previous_text=False
-- MLX Whisper: beam_size=5, temperature=0, word_timestamps=True, condition_on_previous_text=False, initial_prompt=None
-- Lightning Whisper MLX: beam_size=5, temperature=0, word_timestamps=True, condition_on_previous_text=False, batch_size=8, quant=8bit
-- faster-whisper: beam_size=5, temperature=0, word_timestamps=True, condition_on_previous_text=False, vad_filter=False
+CRITICAL: All models use greedy decoding (beam_size=1) for true apples-to-apples comparison:
+- OpenAI Whisper: beam_size=1, temperature=0, word_timestamps=True, condition_on_previous_text=False
+- faster-whisper: beam_size=1, temperature=0, word_timestamps=True, condition_on_previous_text=False, vad_filter=False
+- MLX Whisper: greedy decoding only (no beam search support), temperature=0, word_timestamps=True, condition_on_previous_text=False
+- Lightning Whisper MLX: greedy decoding only (no beam search support), batch_size=8, no quant
 """
 
 from dataclasses import dataclass
@@ -23,7 +23,7 @@ class BenchmarkConfig:
     model_size: str = "base"  # Will be mapped to implementation-specific models
 
     # CRITICAL: Core transcription settings for TRUE apples-to-apples comparison
-    beam_size: int = 5  # Beam search width - MUST be consistent across ALL models
+    beam_size: int = 1  # Greedy decoding for consistency - mlx-whisper and lightning-whisper-mlx only support greedy
     temperature: int = 0  # Deterministic output (0 = deterministic) - MUST be consistent
     word_timestamps: bool = True  # Word-level timing - MUST be consistent across ALL models
     condition_on_previous_text: bool = False  # Don't use previous context - MUST be consistent
@@ -67,10 +67,16 @@ class BenchmarkConfig:
         "large-v3": "distil-large-v3"  # As shown in your config
     }
 
+    # VAD timestamp processing settings
+    use_vad_timestamps: bool = False  # Enable VAD-based segment processing
+    vad_timestamps_file: Optional[str] = None  # Path to VAD timestamps JSON file
+    max_segment_duration: float = 30.0  # Maximum segment length in seconds (for chunking long segments)
+    segment_padding: float = 0.1  # Padding around VAD segments in seconds
+
     def get_openai_whisper_kwargs(self) -> dict:
-        """Get kwargs for OpenAI Whisper - matches your provided config exactly."""
+        """Get kwargs for OpenAI Whisper - using greedy decoding for consistency with MLX models."""
         return {
-            "beam_size": self.beam_size,  # 5
+            "beam_size": self.beam_size,  # 1 - Greedy decoding for apples-to-apples comparison
             "temperature": self.temperature,  # 0
             "word_timestamps": self.word_timestamps,  # True
             "condition_on_previous_text": self.condition_on_previous_text,  # False
@@ -80,9 +86,9 @@ class BenchmarkConfig:
         }
 
     def get_faster_whisper_kwargs(self) -> dict:
-        """Get kwargs for faster-whisper - matches your provided config exactly."""
+        """Get kwargs for faster-whisper - using greedy decoding for consistency with MLX models."""
         return {
-            "beam_size": self.beam_size,  # 5
+            "beam_size": self.beam_size,  # 1 - Greedy decoding for apples-to-apples comparison
             "temperature": self.temperature,  # 0
             "word_timestamps": self.word_timestamps,  # True
             "condition_on_previous_text": self.condition_on_previous_text,  # False
@@ -93,26 +99,23 @@ class BenchmarkConfig:
         }
 
     def get_mlx_whisper_kwargs(self) -> dict:
-        """Get kwargs for mlx-whisper - matches your provided config exactly."""
+        """Get kwargs for mlx-whisper - beam search not supported, uses greedy decoding."""
         return {
             "word_timestamps": self.word_timestamps,  # True
-            "beam_size": self.beam_size,  # 5
             "temperature": self.temperature,  # 0
             "initial_prompt": self.initial_prompt,  # None - add rolling prompt if needed
             "condition_on_previous_text": self.condition_on_previous_text,  # False
             # Optional additional settings
             "language": self.language,
             "task": self.task,
+            # beam_size NOT supported - mlx-whisper uses greedy decoding only
         }
 
     def get_lightning_whisper_mlx_kwargs(self) -> dict:
-        """Get kwargs for lightning-whisper-mlx - matches your provided config exactly."""
+        """Get kwargs for lightning-whisper-mlx - only supports language parameter in transcribe()."""
         return {
-            "beam_size": self.beam_size,  # 5
-            "temperature": self.temperature,  # 0
-            "word_timestamps": self.word_timestamps,  # True
-            "condition_on_previous_text": self.condition_on_previous_text,  # False
-            # Optional additional settings
+            # lightning-whisper-mlx.transcribe() only accepts: audio_path, language=None
+            # All other parameters (beam_size, temperature, word_timestamps, etc.) are NOT supported
             "language": self.language,
         }
 
@@ -121,12 +124,36 @@ class BenchmarkConfig:
         return {
             "model": self.lightning_model_mapping.get(self.model_size, "base"),
             "batch_size": self.batch_size,  # 8 - adjust for memory
-            "quant": self.quant  # "8bit"
+            # "quant": self.quant  # "8bit" - Disabled due to QuantizedLinear compatibility issue
         }
 
     def get_mlx_model_repo(self) -> str:
         """Get the MLX model repository path for the current model size."""
         return self.mlx_model_mapping.get(self.model_size, "mlx-community/whisper-base-mlx-q4")
+
+    def load_vad_timestamps(self) -> list:
+        """Load VAD timestamps from JSON file."""
+        if not self.use_vad_timestamps or not self.vad_timestamps_file:
+            return []
+
+        import json
+        from pathlib import Path
+
+        vad_file = Path(self.vad_timestamps_file)
+        if not vad_file.exists():
+            print(f"Warning: VAD timestamps file not found: {vad_file}")
+            return []
+
+        with open(vad_file, 'r') as f:
+            timestamps = json.load(f)
+
+        # Add padding to segments
+        for segment in timestamps:
+            segment['start_sec'] = max(0, segment['start_sec'] - self.segment_padding)
+            segment['end_sec'] = segment['end_sec'] + self.segment_padding
+            segment['duration_sec'] = segment['end_sec'] - segment['start_sec']
+
+        return timestamps
 
 
 # Default global configuration

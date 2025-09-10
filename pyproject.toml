@@ -11,4 +11,5 @@ dependencies = [
     "lightning-whisper-mlx",
     "librosa",
     "numpy",
+    "soundfile>=0.13.1",
 ]
