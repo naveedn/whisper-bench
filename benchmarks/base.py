@@ -95,8 +95,13 @@ class BaseBenchmark(ABC):
             print(f"Error extracting audio segment: {e}")
             return None
 
-    def process_vad_segments(self, audio_path: str) -> List[Dict]:
-        """Process audio using VAD timestamps if enabled."""
+    def process_vad_segments(self, audio_path: str, model: object) -> List[Dict]:
+        """Process audio using VAD timestamps if enabled.
+
+        Args:
+            audio_path: Path to the audio file
+            model: Pre-loaded model instance to reuse across all segments
+        """
         vad_segments = self.config.load_vad_timestamps()
         if not vad_segments:
             raise ValueError("No VAD timestamps available - VAD mode requires timestamps file")
@@ -115,10 +120,7 @@ class BaseBenchmark(ABC):
                 raise ValueError(f"Failed to extract audio segment {i+1}")
 
             try:
-                # Load model for this segment
-                model, _ = self._load_model()
-
-                # Transcribe the segment
+                # Reuse the pre-loaded model instead of loading for each segment
                 transcript, transcribe_time = self._transcribe(model, segment_path)
 
                 segment_results.append({
@@ -210,8 +212,13 @@ class BaseBenchmark(ABC):
         start_total = time.time()
 
         try:
-            # Process VAD segments
-            segment_results = self.process_vad_segments(audio_path)
+            # Load model once before processing all segments
+            start_load = time.time()
+            model, explicit_load_time = self._load_model()
+            load_time = explicit_load_time if explicit_load_time >= 0 else time.time() - start_load
+
+            # Process VAD segments with the pre-loaded model
+            segment_results = self.process_vad_segments(audio_path, model)
 
             total_time = time.time() - start_total
             total_transcribe_time = sum(seg['transcribe_time'] for seg in segment_results)
@@ -244,7 +251,7 @@ class BaseBenchmark(ABC):
                 audio_file=audio_file.name,
                 file_size_mb=file_size_mb,
                 duration_seconds=vad_duration,  # Use VAD duration instead of full audio
-                load_time=0,  # Model loading distributed across segments
+                load_time=load_time,  # Now properly tracked from single model load
                 transcribe_time=total_transcribe_time,
                 total_time=total_time,
                 success=True,

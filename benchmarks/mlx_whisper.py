@@ -36,7 +36,7 @@ class MLXWhisperBenchmark(BaseBenchmark):
         if self.performance_overlay and self.performance_overlay.should_enable_mlx_memory_management():
             try:
                 import mlx.core as mx
-                mx.metal.clear_cache()
+                mx.clear_cache()
             except ImportError:
                 pass  # MLX not available, continue without memory management
 
