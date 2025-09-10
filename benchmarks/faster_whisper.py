@@ -9,6 +9,10 @@ from .base import BaseBenchmark
 class FasterWhisperBenchmark(BaseBenchmark):
     """Benchmark implementation for faster-whisper."""
 
+    def __init__(self, config, output_dir, performance_overlay=None):
+        super().__init__(config, output_dir)
+        self.performance_overlay = performance_overlay
+
     def get_model_name(self) -> str:
         return "faster-whisper"
 
@@ -22,14 +26,29 @@ class FasterWhisperBenchmark(BaseBenchmark):
         WhisperModel("large-v3", device="cpu", compute_type="int8")
         """
         from faster_whisper import WhisperModel
+        import os
 
         start_time = time.time()
+
+        # Environment variables can still be useful for OpenMP optimization
+        if self.performance_overlay and self.performance_overlay.performance_opts.enable_performance_mode:
+            os.environ['OMP_NUM_THREADS'] = str(self.performance_overlay.performance_opts.faster_whisper_cpu_threads)
+
+        # Base model parameters
+        model_kwargs = {
+            'device': self.config.device,
+            'compute_type': self.config.compute_type
+        }
+
+        # Apply performance optimizations if available
+        if self.performance_overlay:
+            perf_kwargs = self.performance_overlay.get_faster_whisper_performance_kwargs()
+            model_kwargs.update(perf_kwargs)
 
         # Use EXACT settings from provided example for fair comparison
         model = WhisperModel(
             self.config.model_size,
-            device=self.config.device,  # "cpu"
-            compute_type=self.config.compute_type  # "int8"
+            **model_kwargs
         )
 
         load_time = time.time() - start_time
@@ -46,6 +65,12 @@ class FasterWhisperBenchmark(BaseBenchmark):
 
         # Use EXACT config settings from provided example for fair comparison
         kwargs = self.config.get_faster_whisper_kwargs()
+
+        # Apply performance optimizations if available
+        if self.performance_overlay:
+            perf_kwargs = self.performance_overlay.get_faster_whisper_transcribe_kwargs()
+            kwargs.update(perf_kwargs)
+
         segments, info = model.transcribe(audio_path, **kwargs)
 
         # Collect all segments (as shown in provided example)

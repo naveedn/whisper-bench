@@ -9,6 +9,11 @@ from .base import BaseBenchmark
 class OpenAIWhisperBenchmark(BaseBenchmark):
     """Benchmark implementation for OpenAI Whisper."""
 
+    def __init__(self, config, output_dir, performance_overlay=None):
+        super().__init__(config, output_dir, performance_overlay)
+        # OpenAI Whisper doesn't have performance optimizations in this system
+        # but we maintain the interface for consistency
+
     def get_model_name(self) -> str:
         return "whisper"
 

@@ -1,7 +1,7 @@
 [project]
 name = "whisper-bench"
 version = "0.1.0"
-description = "Comprehensive Whisper model benchmarking and comparison tool"
+description = "Comprehensive Whisper model benchmarking and comparison tool with performance optimization support"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -13,3 +13,15 @@ dependencies = [
     "numpy",
     "soundfile>=0.13.1",
 ]
+
+[project.optional-dependencies]
+performance = [
+    "torch>=2.0.0",  # For GPU detection and optimization
+]
+
+all = [
+    "whisper-bench[performance]",
+]
+
+[project.scripts]
+whisper-bench = "main:main"

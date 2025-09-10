@@ -9,6 +9,10 @@ from .base import BaseBenchmark
 class MLXWhisperBenchmark(BaseBenchmark):
     """Benchmark implementation for mlx-whisper."""
 
+    def __init__(self, config, output_dir, performance_overlay=None):
+        super().__init__(config, output_dir)
+        self.performance_overlay = performance_overlay
+
     def get_model_name(self) -> str:
         return "mlx-whisper"
 
@@ -28,10 +32,27 @@ class MLXWhisperBenchmark(BaseBenchmark):
         path_or_hf_repo="mlx-community/whisper-large-v2-mlx-q4", word_timestamps=True,
         beam_size=5, temperature=0, initial_prompt=None, condition_on_previous_text=False
         """
+        # Apply MLX memory management if enabled
+        if self.performance_overlay and self.performance_overlay.should_enable_mlx_memory_management():
+            try:
+                import mlx.core as mx
+                mx.metal.clear_cache()
+            except ImportError:
+                pass  # MLX not available, continue without memory management
+
         start_time = time.time()
 
         # Use EXACT config settings from provided example for fair comparison
         kwargs = self.config.get_mlx_whisper_kwargs()
+
+        # Apply performance optimizations if available
+        if self.performance_overlay:
+            perf_kwargs = self.performance_overlay.get_mlx_whisper_performance_kwargs()
+            kwargs.update(perf_kwargs)
+
+            # Note: dtype is not a valid parameter for mlx_whisper.transcribe()
+            # The transcribe() function doesn't accept dtype parameter
+            # MLX-whisper uses float16 internally by default
 
         # Use the proper MLX model repository path from config mapping
         model_repo = self.config.get_mlx_model_repo()

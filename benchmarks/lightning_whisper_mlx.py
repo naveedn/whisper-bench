@@ -9,6 +9,10 @@ from .base import BaseBenchmark
 class LightningWhisperMLXBenchmark(BaseBenchmark):
     """Benchmark implementation for lightning-whisper-mlx."""
 
+    def __init__(self, config, output_dir, performance_overlay=None):
+        super().__init__(config, output_dir)
+        self.performance_overlay = performance_overlay
+
     def get_model_name(self) -> str:
         return "lightning-whisper-mlx"
 
@@ -27,6 +31,17 @@ class LightningWhisperMLXBenchmark(BaseBenchmark):
 
         # Use EXACT initialization settings from provided example
         init_kwargs = self.config.get_lightning_whisper_mlx_init_kwargs()
+
+        # Apply performance optimizations if available
+        if self.performance_overlay:
+            perf_kwargs = self.performance_overlay.get_lightning_whisper_mlx_performance_kwargs()
+            init_kwargs.update(perf_kwargs)
+
+            # Check for distilled model override
+            model_override = self.performance_overlay.get_lightning_model_override(self.config.model_size)
+            if model_override:
+                init_kwargs['model'] = model_override
+
         transcriber = lightning_whisper_mlx.LightningWhisperMLX(**init_kwargs)
 
         load_time = time.time() - start_time

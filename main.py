@@ -14,11 +14,13 @@ Outputs timing data and saves transcriptions for manual quality inspection.
 import json
 import time
 import traceback
+import argparse
 from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, Any, List
 
 from config import get_config, update_config
+from performance_config import create_performance_overlay, list_performance_profiles
 from benchmarks import (
     BenchmarkResult,
     OpenAIWhisperBenchmark,
@@ -31,21 +33,25 @@ from benchmarks import (
 class WhisperBenchmarkRunner:
     """Main benchmark runner that coordinates all model benchmarks."""
 
-    def __init__(self, output_dir: str = "benchmark_results"):
+    def __init__(self, output_dir: str = "benchmark_results", performance_profile: str = "baseline"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.config = get_config()
+        self.performance_profile = performance_profile
 
-        # Initialize all benchmark implementations
+        # Create performance overlay
+        self.performance_overlay = create_performance_overlay(self.config, performance_profile)
+
+        # Initialize all benchmark implementations with performance overlay
         self.benchmarks = {
-            "whisper": OpenAIWhisperBenchmark(self.config, self.output_dir),
-            "faster-whisper": FasterWhisperBenchmark(self.config, self.output_dir),
-            "mlx-whisper": MLXWhisperBenchmark(self.config, self.output_dir),
-            "lightning-whisper-mlx": LightningWhisperMLXBenchmark(self.config, self.output_dir),
+            "whisper": OpenAIWhisperBenchmark(self.config, self.output_dir, self.performance_overlay),
+            "faster-whisper": FasterWhisperBenchmark(self.config, self.output_dir, self.performance_overlay),
+            "mlx-whisper": MLXWhisperBenchmark(self.config, self.output_dir, self.performance_overlay),
+            "lightning-whisper-mlx": LightningWhisperMLXBenchmark(self.config, self.output_dir, self.performance_overlay),
         }
 
         # Option to skip problematic models
-        self.skip_models = []  # Test all models with consistent beam_size=1 (greedy decoding)
+        self.skip_models = ['whisper']  # Test all models with consistent beam_size=1 (greedy decoding)
 
     def run_benchmark(self, audio_files: List[str], model_sizes: List[str] = ["base"]) -> Dict[str, Any]:
         """Run complete benchmark across all models and files."""
@@ -61,6 +67,7 @@ class WhisperBenchmarkRunner:
         current_test = 0
 
         print(f"Starting benchmark with {total_tests} total tests...")
+        print(f"Performance profile: {self.performance_profile}")
         print(f"Audio files: {[Path(f).name for f in audio_files]}")
         print(f"Models: {list(active_benchmarks.keys())}")
         print(f"Model sizes: {model_sizes}")
@@ -84,9 +91,13 @@ class WhisperBenchmarkRunner:
                     print(f"    🔄 [{current_test}/{total_tests}] {model_name}...", end=" ", flush=True)
 
                     try:
-                        # Update benchmark config
+                        # Update benchmark config and apply performance overlay
                         benchmark.config = get_config()
-                        result = benchmark.benchmark(audio_file)
+
+                        # Apply performance optimizations using context manager
+                        with self.performance_overlay:
+                            result = benchmark.benchmark(audio_file)
+
                         results.append(result)
 
                         if result.success:
@@ -227,8 +238,54 @@ class WhisperBenchmarkRunner:
         return "\n".join(summary)
 
 
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="Whisper Model Benchmark Tool")
+
+    parser.add_argument(
+        "--performance-profile", "-p",
+        choices=list(list_performance_profiles().keys()),
+        default="baseline",
+        help="Performance optimization profile to use"
+    )
+
+    parser.add_argument(
+        "--list-profiles", "-l",
+        action="store_true",
+        help="List available performance profiles and exit"
+    )
+
+    parser.add_argument(
+        "--model-sizes", "-m",
+        nargs="+",
+        default=["base"],
+        choices=["tiny", "base", "small", "medium", "large", "large-v3", "turbo"],
+        help="Model sizes to benchmark (turbo = large-v3-turbo for 8x speed)"
+    )
+
+    parser.add_argument(
+        "--output-dir", "-o",
+        default="benchmark_results",
+        help="Output directory for benchmark results"
+    )
+
+    return parser.parse_args()
+
+
 def main():
     """Main entry point for benchmark script."""
+    # Parse command line arguments
+    args = parse_arguments()
+
+    # Handle --list-profiles
+    if args.list_profiles:
+        print("Available Performance Profiles:")
+        print("=" * 40)
+        profiles = list_performance_profiles()
+        for profile, description in profiles.items():
+            print(f"  {profile:12} - {description}")
+        return
+
     # Check for inputs folder
     inputs_dir = Path("inputs")
 
@@ -285,11 +342,14 @@ def main():
         print("No suitable audio files found")
         return
 
-    # Model sizes to test
-    model_sizes = ["base"]  # Start with base, add "small", "medium", "large" as needed
+    # Use command line arguments
+    model_sizes = args.model_sizes
 
-    # Run benchmark
-    runner = WhisperBenchmarkRunner()
+    # Run benchmark with performance profile
+    runner = WhisperBenchmarkRunner(
+        output_dir=args.output_dir,
+        performance_profile=args.performance_profile
+    )
     results = runner.run_benchmark([str(f) for f in audio_files], model_sizes)
 
     print("\n" + "="*80)

@@ -33,9 +33,10 @@ class BenchmarkResult:
 class BaseBenchmark(ABC):
     """Base class for all Whisper benchmark implementations."""
 
-    def __init__(self, config: BenchmarkConfig, output_dir: Path):
+    def __init__(self, config: BenchmarkConfig, output_dir: Path, performance_overlay=None):
         self.config = config
         self.output_dir = output_dir
+        self.performance_overlay = performance_overlay
         self.model_name = self.get_model_name()
 
         # Create output directory for this model

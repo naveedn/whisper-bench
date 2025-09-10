@@ -58,13 +58,15 @@ class BenchmarkConfig:
         "large-v3": "mlx-community/whisper-large-v3-mlx-q4"
     }
 
-    # Lightning model mapping
+    # Lightning model mapping - CORRECTED: Proper size progression for performance
     lightning_model_mapping = {
-        "base": "base",
-        "small": "small",
-        "medium": "medium",
-        "large": "large-v2",
-        "large-v3": "distil-large-v3"  # As shown in your config
+        "tiny": "tiny",                    # 39M params - Maximum speed option
+        "base": "base",                    # 74M params - FIXED: Actually smaller than large!
+        "small": "small",                  # 244M params - Proper small model
+        "medium": "medium",                # 769M params - Standard medium
+        "large": "large-v2",               # 1.55B params - Stable large model
+        "large-v3": "large-v3",            # 1.55B params - Latest large model
+        "turbo": "large-v3-turbo",         # 809M params - NEW: 8x speed improvement
     }
 
     # VAD timestamp processing settings

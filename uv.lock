@@ -1449,6 +1449,14 @@ dependencies = [
     { name = "soundfile" },
 ]
 
+[package.optional-dependencies]
+all = [
+    { name = "torch" },
+]
+performance = [
+    { name = "torch" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "faster-whisper" },
@@ -1458,4 +1466,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "openai-whisper" },
     { name = "soundfile", specifier = ">=0.13.1" },
+    { name = "torch", marker = "extra == 'performance'", specifier = ">=2.0.0" },
+    { name = "whisper-bench", extras = ["performance"], marker = "extra == 'all'" },
 ]
+provides-extras = ["performance", "all"]
