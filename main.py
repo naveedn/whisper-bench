@@ -33,7 +33,7 @@ from benchmarks import (
 class WhisperBenchmarkRunner:
     """Main benchmark runner that coordinates all model benchmarks."""
 
-    def __init__(self, output_dir: str = "benchmark_results", performance_profile: str = "baseline"):
+    def __init__(self, output_dir: str = "outputs", performance_profile: str = "baseline"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.config = get_config()
@@ -265,7 +265,7 @@ def parse_arguments():
 
     parser.add_argument(
         "--output-dir", "-o",
-        default="benchmark_results",
+        default="outputs",
         help="Output directory for benchmark results"
     )
 

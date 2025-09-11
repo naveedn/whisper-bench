@@ -129,7 +129,7 @@ Options:
   -l, --list-profiles   List available performance profiles and exit
   -m, --model-sizes {tiny,base,small,medium,large,large-v3,turbo} [...]
                         Model sizes to benchmark (turbo = large-v3-turbo for 8x speed) (default: base)
-  -o, --output-dir DIR  Output directory for benchmark results (default: benchmark_results)
+  -o, --output-dir DIR  Output directory for benchmark results (default: outputs)
   -h, --help           Show help message and exit
 
 Examples:
@@ -142,9 +142,9 @@ Examples:
 
 ## Output
 
-Results are saved to `benchmark_results/`:
+Results are saved to `outputs/`:
 ```
-benchmark_results/
+outputs/
 ├── benchmark_results_YYYYMMDD_HHMMSS.json  # Detailed metrics
 ├── benchmark_summary_YYYYMMDD_HHMMSS.txt   # Human-readable summary
 └── transcripts/                            # Individual model outputs
@@ -230,7 +230,7 @@ whisper-bench/
 │   ├── mlx_whisper.py
 │   └── lightning_whisper_mlx.py
 ├── inputs/              # Place your audio + VAD files here
-└── benchmark_results/   # Generated results and transcripts
+└── outputs/             # Generated results and transcripts
 ```
 
 ## Performance Comparison Workflow

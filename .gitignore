@@ -1,6 +1,6 @@
 # Generated benchmark results (recreated on each run)
-benchmark_results/
-!benchmark_results/.gitkeep
+outputs/
+!outputs/.gitkeep
 
 # Downloaded model files (downloaded automatically when needed)
 mlx_models/
