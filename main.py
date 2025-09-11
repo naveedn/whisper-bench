@@ -51,7 +51,7 @@ class WhisperBenchmarkRunner:
         }
 
         # Option to skip problematic models
-        self.skip_models = ['whisper', 'faster-whisper']  # Test all models with consistent beam_size=1 (greedy decoding)
+        self.skip_models = []  # Test all models with consistent beam_size=1 (greedy decoding)
 
     def run_benchmark(self, audio_files: List[str], model_sizes: List[str] = ["base"]) -> Dict[str, Any]:
         """Run complete benchmark across all models and files."""

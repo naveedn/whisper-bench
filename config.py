@@ -51,9 +51,9 @@ class BenchmarkConfig:
 
     # Model repository mappings for MLX implementations
     mlx_model_mapping = {
-        "base": "mlx-community/whisper-base-mlx-q4",
-        "small": "mlx-community/whisper-small-mlx-q4",
-        "medium": "mlx-community/whisper-medium-mlx-q4",
+        "base": "mlx-community/whisper-base.en-mlx-q4",
+        "small": "mlx-community/whisper-small.en-mlx-q4",
+        "medium": "mlx-community/whisper-medium.en-mlx-q4",
         "large": "mlx-community/whisper-large-v2-mlx-q4",
         "large-v3": "mlx-community/whisper-large-v3-mlx-q4"
     }
