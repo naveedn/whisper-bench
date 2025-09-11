@@ -1,6 +1,6 @@
 # Whisper Bench
 
-A comprehensive benchmarking tool for comparing Whisper speech-to-text implementations with VAD (Voice Activity Detection) support.
+A comprehensive benchmarking tool for comparing Whisper speech-to-text implementations on Apple Silicon (Macbook M1).
 
 ## Features
 
@@ -56,7 +56,7 @@ JSON file with speech segments to avoid processing silent sections:
 [
   {
     "start_sec": 10.5,
-    "end_sec": 15.8, 
+    "end_sec": 15.8,
     "duration_sec": 5.3
   }
 ]
@@ -64,7 +64,7 @@ JSON file with speech segments to avoid processing silent sections:
 
 Benefits of VAD:
 - ✅ Avoids Whisper hallucinations on long silent sections
-- ✅ More accurate quality assessment 
+- ✅ More accurate quality assessment
 - ✅ Focus transcription on actual speech content
 
 ## Configuration
@@ -95,7 +95,7 @@ uv run python main.py --performance-profile aggressive    # Maximum performance
 **Performance optimizations include:**
 - GPU acceleration (when available)
 - Optimized batch processing
-- Memory management improvements  
+- Memory management improvements
 - Threading optimization (`cpu_threads`, `num_workers`)
 - Model quantization (limited by Apple Hardware compatibility)
 
@@ -105,13 +105,6 @@ uv run python main.py --performance-profile aggressive    # Maximum performance
 - Lightning-whisper-mlx quantization disabled due to QuantizedLinear compatibility issues
 - MLX models automatically use float16 precision without explicit dtype settings
 
-**Performance Model Selection:**
-When using aggressive performance profiles, models are automatically optimized for speed:
-- `base` → `tiny` (74M → 39M parameters, 47% smaller)
-- `small` → `base` (244M → 74M parameters, 70% smaller)  
-- `medium` → `small` (769M → 244M parameters, 68% smaller)
-- `large` → `large-v3-turbo` (1.55B → 809M parameters, 8x faster)
-- `turbo` → `large-v3-turbo` (new option for maximum speed)
 
 **Threading Optimization Details:**
 - **faster-whisper**: Uses `cpu_threads` (OpenMP threads), `num_workers` (parallel workers), and `chunk_length` (audio segmentation)
@@ -149,7 +142,7 @@ outputs/
 ├── benchmark_summary_YYYYMMDD_HHMMSS.txt   # Human-readable summary
 └── transcripts/                            # Individual model outputs
     ├── whisper/
-    ├── faster_whisper/ 
+    ├── faster_whisper/
     ├── mlx_whisper/
     └── lightning_whisper_mlx/
 ```
@@ -200,7 +193,7 @@ BENCHMARK COMPLETE!
 
 **Core dependencies (always installed):**
 - `mlx-whisper` - MLX-optimized Whisper for Apple Silicon
-- `openai-whisper` - Original OpenAI implementation  
+- `openai-whisper` - Original OpenAI implementation
 - `faster-whisper` - CTranslate2-based acceleration
 - `lightning-whisper-mlx` - High-performance MLX implementation
 - `librosa` - Audio processing
@@ -213,7 +206,7 @@ BENCHMARK COMPLETE!
 **Installation options:**
 ```bash
 uv sync                    # Basic installation (CPU only)
-uv sync --extra performance # Include GPU support  
+uv sync --extra performance # Include GPU support
 uv sync --extra all        # Everything
 ```
 
@@ -226,7 +219,7 @@ whisper-bench/
 ├── benchmarks/          # Model implementations
 │   ├── base.py         # Abstract base class with VAD support
 │   ├── openai_whisper.py
-│   ├── faster_whisper.py  
+│   ├── faster_whisper.py
 │   ├── mlx_whisper.py
 │   └── lightning_whisper_mlx.py
 ├── inputs/              # Place your audio + VAD files here
@@ -264,7 +257,7 @@ The performance profiles ensure **identical quality** while optimizing computati
 ## Troubleshooting
 
 - **MLX models fail**: Requires Apple Silicon Mac
-- **No audio found**: Place files in `inputs/` folder  
+- **No audio found**: Place files in `inputs/` folder
 - **VAD not working**: Ensure `librosa` installed with `uv sync`
 - **Out of memory**: Use shorter audio files or smaller model sizes
 - **GPU not detected**: Install with `uv sync --extra performance` and ensure CUDA available
