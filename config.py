@@ -53,7 +53,7 @@ class BenchmarkConfig:
     mlx_model_mapping = {
         "base": "mlx-community/whisper-base.en-mlx-q4",
         "small": "mlx-community/whisper-small.en-mlx-q4",
-        "medium": "mlx-community/whisper-medium.en-mlx-q4",
+        "medium": "mlx-community/whisper-medium.en-mlx-4bit",
         "large": "mlx-community/whisper-large-v2-mlx-q4",
         "large-v3": "mlx-community/whisper-large-v3-mlx-q4"
     }
